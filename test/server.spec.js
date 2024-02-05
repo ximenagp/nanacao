@@ -1,5 +1,5 @@
 import request from "supertest"
-import app from "../../server.js.js"
+import app from "../server.js"
 import { generateToken } from "../utils/login"
 import { generateFakeId } from "../utils/id.js"
 

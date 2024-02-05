@@ -1,13 +1,14 @@
 {
-  "name": "desafio",
+  "name": "nanacao",
   "version": "1.0.0",
-  "description": "",
+  "description": " ",
   "main": "index.js",
   "type": "module",
   "scripts": {
     "test": "jest --coverage --detectOpenHandles",
     "dev": "node --watch index.js",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "start": "node server.js"
   },
   "author": "",
   "license": "ISC",
@@ -39,5 +40,9 @@
         "lines": 100
       }
     }
-  }
+  },
+  "directories": {
+    "test": "test"
+  },
+  "keywords": []
 }
