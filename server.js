@@ -14,7 +14,7 @@ app.get("/cafes", (req, res) => {
 app.get("/cafes/:id", (req, res) => {
   try {
     const cafe = cafes.find((c) => c.id === Number(req.params.id))
-    if (!cafe) {
+    if (cafe) {
       res.status(404).json({ message: "café no encontrado, inténtalo nuevamente" })
     } else {
       res.status(200).json(cafe)
@@ -24,7 +24,6 @@ app.get("/cafes/:id", (req, res) => {
     res.status(500).json({ message: "Hubo un error en el servidor" })
   }
 })
-
 
 app.post("/cafes", (req, res) => {
   try {
@@ -39,7 +38,6 @@ app.post("/cafes", (req, res) => {
     return res.status(500).json({ message: "Hubo un error en el servidor" })
   }
 })
-
 
 app.put("/cafes/:id", (req, res) => {
   try {
@@ -80,24 +78,8 @@ app.delete("/cafes/:id", async (req, res) => {
   }
 })
 
-
 app.use("*", (req, res) => {
     res.status(404).send({ message: "La ruta existe" })
   })
-
-  /*const close = (req, res) => {
-    for (const socket of Array.from(sockets)) {
-      socket.destroy();
-      sockets.delete(socket);
-    }
-  app.server.close((err) => {
-      if(err){
-          console.error(err);
-          res.status(500).send('el servidor no se pudo cerrar');
-      } else {
-          res.send('Server closed');
-      }
-  });
-  }*/
-  
+    
   export default app
