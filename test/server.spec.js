@@ -1,46 +1,51 @@
 import request from "supertest"
-import app from "../server.js"
-import { generateToken } from "../scr/utils/login.js"
-import { generateFakeId } from "../scr/utils/id.js"
+import server from "../src/server"
 
-describe("CRUD operations for cafes", () => {
-    it("should return a status of 200", async () => {
-    const response = await (await request(app).get("/cafes")).send()
-    expect(response.status).toBe(200);
-    expect(Array.isArray(response.body)).toBe(true);
-    expect(response.body.length).toBeGreaterThan(0);
-  });
-});
+describe("Get ../cafes", () => {
+    it("debe responder con un estado 200", async () => {
+        const { status } = await request(server).get("/cafes")
+        expect(status).toBe(200)
+    })
+})
+    it("devuelve un array", async () => {
+        const { body } = await request(server).get("/cafes")
+        expect(Array.isArray(body)).toBe(true)
+    })
+    describe("given an id", () => {
+        const cafeId = "given id"
+        it("responde un estado 404", async () => {
+            const response = await request(server).get(`/cafes/${cafeId}`)
+            expect(response.status).toBe(404)
+        })  
+    })
 
-  it("crea un elemento (café) devuolviendo un estado 201", async () => {
-    const { id } = response.body
-    const nuevoCafe = {
-      id: id,
-      nombre: "Cortado",
-    }
-    const response = await request(app).post("/cafes").send(nuevoCafe)
-    expect(response.status).toBe(201)
+  describe("Post ../cafes", () => {
+      const newCoffe = {
+          name: "other coffe"
+      };
+      let response, id, postResponse
+  
+      beforeAll(async () => {
+          response = await request(index).post("/cafes").send(newCoffe);
+          id = response.body.id;
+          postResponse = await request(index).post(`/cafes/${id}`).send({ name:"new coffe" })
+      })
+  
+      it("devuelve un código 201", () => {
+          expect(response.status).toBe(201)
+      })
+  
+      it("agrega un nuevo café", () => {
+          expect(postResponse.body.name).toBe("new coffe")
+      })
   })
 
-  it("si intenta actualizar un id no coincidente", async () => {
-    let id = generateFakeId()
-    const cafesResponse = await request(app).get("/cafes")
-    const cafeToUpdate = cafesResponse.body[0]
-    const updatedCafe = {
-      id: id,
-      nombre: "tostado",
-    }
-    const response = await request(app)
-      .put(`/cafes/${cafeToUpdate.id}`)
-      .send(updatedCafe)
-    expect(response.statusCode).toBe(400)
-  })
-
-  it(" id does not exist delete ", async () => {
-    let id = generateFakeId()
-    id = id
-    const response = await request(app)
-      .delete(`/cafes/${id}`)
-      .set("Authorization", generateToken())
-    expect(response.statusCode).toBe(404)
-  })
+describe("Put ../cafes/:id", () => {
+    it("devuelve un status code 400 si intentas actualizar un café enviando un id en los parámetros que sea diferente al id dentro del payload.", async() => {
+        const newCoffe = { name: "other coffee" }
+        const response = await request(server).post("/cafes").send(newCoffe)
+        const updateCoffe = { name: "new coffee" }
+        const putResponse = await request(server).put(`/cafes/${!response.body.id}`).send(updateCoffe)
+        expect(putResponse.status).toBe(400)
+    })
+})

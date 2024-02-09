@@ -1,85 +1,74 @@
-import cafes from "./cafes.json"
-import express from "express"
-const app = express()
-const PORT = 3000
+const express = require('express');
+const app = express();
 
-app.listen(PORT, console.log(`servidor encendido en el puerto: ${PORT}`))
+const cafes = require("./cafes.json")
+
+app.listen(3000, console.log("SERVER ON"))
 
 app.use(express.json())
 
 app.get("/cafes", (req, res) => {
-  res.status(200).send(cafes)
+    res.status(200).send(cafes)
 })
 
 app.get("/cafes/:id", (req, res) => {
-  try {
-    const cafe = cafes.find((c) => c.id === Number(req.params.id))
-    if (cafe) {
-      res.status(404).json({ message: "café no encontrado, inténtalo nuevamente" })
-    } else {
-      res.status(200).json(cafe)
-    }
-  } catch (error) {
-    console.error("Error en la función /cafes/:id (GET)", error)
-    res.status(500).json({ message: "Hubo un error en el servidor" })
-  }
+    const { id } = req.params
+    const cafe = cafes.find(c => c.id == id)
+    if (cafe) res.status(200).send(cafe)
+    else res.status(404).send({ message: "No se encontró ningún cafe con ese id" })
 })
 
 app.post("/cafes", (req, res) => {
-  try {
-    const { id } = req.body
-    if (cafes.some((cafe) => cafe.id === id)) {
-      return res.status(400).json({ message: "este café ya existe" })
+    const cafe = req.body
+    const { id } = cafe
+    const existeUncafeConEseId = cafes.some(c => c.id == id)
+    if (existeUncafeConEseId) res.status(400).send({ message: "Ya existe un cafe con ese id" })
+    else {
+        cafes.push(cafe)
+        res.status(201).send(cafes)
     }
-    cafes.push(req.body)
-    return res.status(201).json(cafes)
-  } catch (error) {
-    console.error("Error en la función /cafes (POST)", error)
-    return res.status(500).json({ message: "Hubo un error en el servidor" })
-  }
 })
 
 app.put("/cafes/:id", (req, res) => {
-  try {
-    if (req.params.id !== req.body.id) {
-      return res.status(400).json({ message: "ingresa el id correcto" })
-    }
-    res.status(200).json({ message: "Actualización exitosa" })
-  } catch (error) {
-    console.error("Error en la función /cafes/:id (PUT)", error)
-    res.status(500).json({ message: "Hubo un error en el servidor" })
-  }
-})
+    const cafe = req.body;
+    const { id } = req.params;
+    if (id != cafe.id)
+        return res
+            .status(400)
+            .send({
+                message: "El id del parámetro no coincide con el id del café recibido",
+            });
 
-try {
-    const cafeIndex = cafes.findIndex(p => p.id === id)
-    if (cafeIndex !== -1) {
-        cafes[cafeIndex] = cafe
-        res.json(cafes)
+    const cafeIndexFound = cafes.findIndex((p) => p.id == id);
+    if (cafeIndexFound >= 0) {
+        cafes[cafeIndexFound] = cafe;
+        res.send(cafes);
     } else {
-        throw new Error()
+        res
+            .status(404)
+            .send({ message: "No se encontró ningún café con ese id" });
     }
-} catch {
-    res.status(404).json({ message: "No se encontró el café solicitado" })
-}
+});
 
-app.delete("/cafes/:id", async (req, res) => {
-  const jwt = req.header("Authorization")
-  const { id } = req.params
-  if (!jwt) return res.status(400).json({ message: "token no encontrado " })
-  try {
-    const cafeIndexFound = cafes.findIndex(cafe => cafe.id === id)
-    if (cafeIndexFound === -1) return res.status(404).json({ message: "no se encontró el café" })
-    cafes.splice(cafeIndexFound, 1)
-    res.json(cafes)
-  } catch (error) {
-    console.error("Error en la función /cafes/:id", error)
-    res.status(500).json({ message: "Hubo un error en el servidor" })
-  }
+app.delete("/cafes/:id", (req, res) => {
+    const jwt = req.header("Authorization")
+    if (jwt) {
+        const { id } = req.params
+        const cafeIndexFound = cafes.findIndex(c => c.id == id)
+
+        if (cafeIndexFound >= 0) {
+            cafes.splice(cafeIndexFound, 1)
+            console.log(cafeIndexFound, cafes)
+            res.send(cafes)
+        } else {
+            res.status(404).send({ message: "No se encontró ningún cafe con ese id" })
+        }
+
+    } else res.status(400).send({ message: "No recibió ningún token en las cabeceras" })
 })
 
 app.use("*", (req, res) => {
-    res.status(404).send({ message: "La ruta existe" })
-  })
-    
-  export default app
+    res.status(404).send({ message: "La ruta que intenta consultar no existe" })
+})
+
+module.exports = app
